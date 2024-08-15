@@ -66,14 +66,14 @@ namespace Pinetime {
       static constexpr size_t Count = sizeof...(As);
     };
 
-    using UserAppTypes = TypeList<@USERAPP_TYPES@>;
+    using UserAppTypes = TypeList<Apps::StopWatch, Apps::Alarm, Apps::Timer, Apps::Steps, Apps::HeartRate, Apps::Music, Apps::Paint, Apps::Paddle, Apps::Twos, Apps::Dice, Apps::Metronome, Apps::Navigation, Apps::Weather>;
 
     template <WatchFace... Ws>
     struct WatchFaceTypeList {
       static constexpr size_t Count = sizeof...(Ws);
     };
 
-    using UserWatchFaceTypes = WatchFaceTypeList<@WATCHFACE_TYPES@>;
+    using UserWatchFaceTypes = WatchFaceTypeList<WatchFace::Analog,WatchFace::PineTimeStyle,WatchFace::Infineat,WatchFace::Terminal,WatchFace::Minimal>;
 
     static_assert(UserWatchFaceTypes::Count >= 1);
   }
