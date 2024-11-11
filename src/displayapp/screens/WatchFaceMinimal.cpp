@@ -1,8 +1,5 @@
 #include <lvgl/lvgl.h>
 #include "displayapp/screens/WatchFaceMinimal.h"
-#include "displayapp/screens/BatteryIcon.h"
-#include "displayapp/screens/NotificationIcon.h"
-#include "displayapp/screens/Symbols.h"
 #include "components/battery/BatteryController.h"
 #include "components/ble/BleController.h"
 #include "components/ble/NotificationManager.h"
@@ -70,7 +67,7 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
 
   label_prompt_2 = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(label_prompt_2, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 100);
-  lv_label_set_text_static(label_prompt_2, "<3");
+  lv_label_set_text_static(label_prompt_2, "<3 80083");
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(label_time, true);
@@ -88,6 +85,11 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
   weather = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(weather, true);
   lv_obj_align(weather, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 80);
+
+  weatherLocation = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_recolor(weather, true);
+  lv_obj_align(weatherLocation, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 80);
+
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
   Refresh();
@@ -142,7 +144,10 @@ void WatchFaceMinimal::Refresh() {
         temp = Controllers::SimpleWeatherService::CelsiusToFahrenheit(temp);
         tempUnit = 'F';
       }
-      lv_label_set_text_fmt(weather, "%i°%c %s ", temp / 100, tempUnit, Symbols::GetSimpleCondition(optCurrentWeather->iconId));
+      lv_label_set_text_fmt(weather, "%i°%c %s %s", temp / 100, tempUnit, Symbols::GetSimpleCondition(optCurrentWeather->iconId), &(optCurrentWeather->location));
+      lv_point_t p;
+      char* text_weather = _lv_txt_set_text_vfmt("%i°%c %s", temp/100, tempUnit, Symbols::GetSimpleCondition(optCurrentWeather->iconId));
+      _lv_txt_get_size(&p, ctxi_text, my_font, 0, 0, LV_COORD_MAX, LV_TXT_FLAG_EXPAND);
     } else {
       lv_label_set_text(weather, "#ffffff No Weather");
       lv_obj_set_style_local_text_color(weather, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::lightGray);

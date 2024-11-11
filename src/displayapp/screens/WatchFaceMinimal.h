@@ -54,6 +54,7 @@ namespace Pinetime {
         lv_obj_t* label_date;
         lv_obj_t* seconds;
         lv_obj_t* weather;
+        lv_obj_t* weatherLocation;
         lv_obj_t* label_prompt_1;
         lv_obj_t* label_prompt_2;
         lv_obj_t* batteryValue;
