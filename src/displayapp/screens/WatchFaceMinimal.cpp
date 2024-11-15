@@ -67,7 +67,7 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
 
   label_prompt_2 = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(label_prompt_2, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 100);
-  lv_label_set_text_static(label_prompt_2, "<3 Lex & Jakob&80085");
+  lv_label_set_text_static(label_prompt_2, "<3");
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(label_time, true);
