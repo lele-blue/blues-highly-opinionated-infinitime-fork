@@ -67,7 +67,7 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
 
   label_prompt_2 = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(label_prompt_2, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 100);
-  lv_label_set_text_static(label_prompt_2, "<3 80083");
+  lv_label_set_text_static(label_prompt_2, "<3 Lex & Jakob&80085");
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(label_time, true);
@@ -87,8 +87,10 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
   lv_obj_align(weather, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 80);
 
   weatherLocation = lv_label_create(lv_scr_act(), nullptr);
-  lv_label_set_recolor(weather, true);
+  lv_label_set_recolor(weatherLocation, true);
   lv_obj_align(weatherLocation, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 80);
+  lv_label_set_long_mode(weatherLocation, LV_LABEL_LONG_SROLL_CIRC);
+  lv_label_set_anim_speed(weatherLocation, 60);
 
 
   taskRefresh = lv_task_create(RefreshTaskCallback, LV_DISP_DEF_REFR_PERIOD, LV_TASK_PRIO_MID, this);
@@ -140,16 +142,27 @@ void WatchFaceMinimal::Refresh() {
       int16_t temp = optCurrentWeather->temperature;
       char tempUnit = 'C';
       lv_obj_set_style_local_text_color(weather, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, temperatureColor(temp));
+      lv_obj_set_style_local_text_color(weatherLocation, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, temperatureColor(temp));
       if (settingsController.GetWeatherFormat() == Controllers::Settings::WeatherFormat::Imperial) {
         temp = Controllers::SimpleWeatherService::CelsiusToFahrenheit(temp);
         tempUnit = 'F';
       }
-      lv_label_set_text_fmt(weather, "%i°%c %s %s", temp / 100, tempUnit, Symbols::GetSimpleCondition(optCurrentWeather->iconId), &(optCurrentWeather->location));
-      lv_point_t p;
-      char* text_weather = _lv_txt_set_text_vfmt("%i°%c %s", temp/100, tempUnit, Symbols::GetSimpleCondition(optCurrentWeather->iconId));
-      _lv_txt_get_size(&p, ctxi_text, my_font, 0, 0, LV_COORD_MAX, LV_TXT_FLAG_EXPAND);
+      lv_label_set_text_fmt(weather, "%i°%c %s", temp / 100, tempUnit, Symbols::GetSimpleCondition(optCurrentWeather->iconId));
+      lv_point_t text_size;
+      char text_weather[34];
+      if (lv_snprintf(&text_weather[0], 34, "%i°%c %s", temp/100, tempUnit, Symbols::GetSimpleCondition(optCurrentWeather->iconId)) < 0) {
+        text_weather[0] = 'E';
+        text_weather[1] = '\0';
+      };
+      _lv_txt_get_size(&text_size, text_weather, &jetbrains_mono_bold_20, 0, 0, LV_COORD_MAX, LV_TXT_FLAG_EXPAND);
+      lv_label_set_text_fmt(weatherLocation, " %s", &(optCurrentWeather->location));
+      signed short WIDTH = 240;
+      lv_obj_set_width(weatherLocation,(unsigned int) (WIDTH - text_size.x));
+      lv_obj_align(weatherLocation, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, text_size.x, 80);
+
     } else {
       lv_label_set_text(weather, "#ffffff No Weather");
+      lv_label_set_text(weatherLocation, "");
       lv_obj_set_style_local_text_color(weather, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::lightGray);
     }
   }

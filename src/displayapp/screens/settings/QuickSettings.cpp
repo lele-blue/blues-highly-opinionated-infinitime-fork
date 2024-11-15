@@ -58,7 +58,7 @@ QuickSettings::QuickSettings(Pinetime::Applications::DisplayApp* app,
   static constexpr uint8_t buttonXOffset = (LV_HOR_RES_MAX - buttonWidth * 2 - innerDistance) / 2;
 
   lv_style_init(&btn_style);
-  lv_style_set_radius(&btn_style, LV_STATE_DEFAULT, buttonHeight / 4);
+  lv_style_set_radius(&btn_style, LV_STATE_DEFAULT, 0);
   lv_style_set_bg_color(&btn_style, LV_STATE_DEFAULT, Colors::bgAlt);
 
   btn1 = lv_btn_create(lv_scr_act(), nullptr);

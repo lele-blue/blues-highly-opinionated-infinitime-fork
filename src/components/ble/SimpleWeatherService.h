@@ -32,6 +32,8 @@
 #undef min
 
 #include "components/datetime/DateTimeController.h"
+#define COORDS_N = 49.6
+#define COORDS_E = 11.01
 
 int WeatherCallback(uint16_t connHandle, uint16_t attrHandle, struct ble_gatt_access_ctxt* ctxt, void* arg);
 
@@ -106,6 +108,7 @@ namespace Pinetime {
       };
 
       std::optional<CurrentWeather> Current() const;
+      
       std::optional<Forecast> GetForecast() const;
 
       static int16_t CelsiusToFahrenheit(int16_t celsius) {

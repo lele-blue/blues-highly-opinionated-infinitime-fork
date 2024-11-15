@@ -59,7 +59,7 @@ static void basic_init() {
 
   style_init_reset(&style_box);
   lv_style_set_bg_opa(&style_box, LV_STATE_DEFAULT, LV_OPA_COVER);
-  lv_style_set_radius(&style_box, LV_STATE_DEFAULT, 10);
+  lv_style_set_radius(&style_box, LV_STATE_DEFAULT, 00);
   lv_style_set_value_font(&style_box, LV_STATE_DEFAULT, theme.font_normal);
 
   style_init_reset(&style_label_white);
@@ -67,7 +67,7 @@ static void basic_init() {
   lv_style_set_text_color(&style_label_white, LV_STATE_DISABLED, LV_COLOR_GRAY);
 
   style_init_reset(&style_btn);
-  lv_style_set_radius(&style_btn, LV_STATE_DEFAULT, 10);
+  lv_style_set_radius(&style_btn, LV_STATE_DEFAULT, 00);
   lv_style_set_bg_opa(&style_btn, LV_STATE_DEFAULT, LV_OPA_COVER);
   lv_style_set_bg_color(&style_btn, LV_STATE_DEFAULT, Colors::bg);
   lv_style_set_bg_color(&style_btn, LV_STATE_CHECKED, Colors::highlight);
@@ -216,7 +216,7 @@ static void basic_init() {
  * @return a pointer to reference this theme later
  */
 lv_theme_t* lv_pinetime_theme_init() {
-  theme.color_primary = LV_COLOR_WHITE;
+  theme.color_primary = LV_COLOR_BLUE;
   theme.color_secondary = LV_COLOR_GRAY;
   theme.font_small = &jetbrains_mono_bold_20;
   theme.font_normal = &jetbrains_mono_bold_20;
