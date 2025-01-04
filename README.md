@@ -1,3 +1,10 @@
+# So what is this fuzz about?
+
+Its a fork for me and some friends running InfiniTime with some highly useless features added, most notably:
+- A "minimal" watch face that stuffs plain colored text without any decorations onto the screen
+- A Congress mode, this changes the date display to the `Day #` couter used by the Chaos Communication Congress
+- Thigs are less round to use the screen real estate more efficiently
+
 # [InfiniTime](https://github.com/InfiniTimeOrg/InfiniTime)
 
 ![InfiniTime logo](doc/logo/infinitime-logo-small.jpg "InfiniTime Logo")
