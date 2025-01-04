@@ -66,11 +66,11 @@ const char* Pinetime::Applications::Screens::Symbols::GetSimpleCondition(const P
     case Pinetime::Controllers::SimpleWeatherService::Icons::Sun:
       return "Clear";
     case Pinetime::Controllers::SimpleWeatherService::Icons::CloudsSun:
-      return "Clouds";
+      return "SClouds";
     case Pinetime::Controllers::SimpleWeatherService::Icons::Clouds:
       return "Clouds";
     case Pinetime::Controllers::SimpleWeatherService::Icons::BrokenClouds:
-      return "Clouds";
+      return "PClouds";
     case Pinetime::Controllers::SimpleWeatherService::Icons::CloudShowerHeavy:
       return "Rain";
     case Pinetime::Controllers::SimpleWeatherService::Icons::CloudSunRain:

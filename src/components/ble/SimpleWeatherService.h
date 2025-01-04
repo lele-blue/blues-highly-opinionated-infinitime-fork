@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <cmath>
 
 #define min // workaround: nimble's min/max macros conflict with libstdc++
 #define max
@@ -32,8 +33,12 @@
 #undef min
 
 #include "components/datetime/DateTimeController.h"
-#define COORDS_N = 49.6
-#define COORDS_E = 11.01
+#define COORDS_N 49.6
+#define COORDS_E 11.01
+#define TZ_UTC_OFFSET 2
+#define DAYLIGHTSAVINGS 1
+#define ZENITH 90
+#define PI 3.1415926
 
 int WeatherCallback(uint16_t connHandle, uint16_t attrHandle, struct ble_gatt_access_ctxt* ctxt, void* arg);
 
@@ -64,6 +69,16 @@ namespace Pinetime {
       };
 
       using Location = std::array<char, 33>; // 32 char + \0 (end of string)
+                                             //
+      struct Time {
+        int hour;
+        int minute;
+      };
+
+      struct SunInfo {
+        std::chrono::time_point<std::chrono::system_clock> nextSunChange;
+        bool is_sunrise;
+      };
 
       struct CurrentWeather {
         CurrentWeather(uint64_t timestamp,
@@ -120,6 +135,7 @@ namespace Pinetime {
       static constexpr ble_uuid128_t BaseUuid() {
         return CharUuid(0x00, 0x00);
       }
+      void recalc_sun();
 
       // 0005yyxx-78fc-48fe-8e23-433b3a1942d0
       static constexpr ble_uuid128_t CharUuid(uint8_t x, uint8_t y) {
@@ -147,6 +163,7 @@ namespace Pinetime {
 
       std::optional<CurrentWeather> currentWeather;
       std::optional<Forecast> forecast;
+      std::optional<SunInfo> suninfo;
     };
   }
 }

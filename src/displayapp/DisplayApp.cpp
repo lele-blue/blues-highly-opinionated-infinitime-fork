@@ -46,6 +46,7 @@
 #include "displayapp/screens/settings/SettingDisplay.h"
 #include "displayapp/screens/settings/SettingSteps.h"
 #include "displayapp/screens/settings/SettingSetDateTime.h"
+#include "displayapp/screens/settings/SettingCongressMode.h"
 #include "displayapp/screens/settings/SettingChimes.h"
 #include "displayapp/screens/settings/SettingShakeThreshold.h"
 #include "displayapp/screens/settings/SettingBluetooth.h"
@@ -526,6 +527,9 @@ void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections directio
       break;
     case Apps::BatteryInfo:
       currentScreen = std::make_unique<Screens::BatteryInfo>(batteryController);
+      break;
+    case Apps::SettingCongressMode:
+      currentScreen = std::make_unique<Screens::SettingCongressMode>(settingsController, dateTimeController);
       break;
     case Apps::SysInfo:
       currentScreen = std::make_unique<Screens::SystemInfo>(this,

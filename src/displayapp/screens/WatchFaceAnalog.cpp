@@ -114,9 +114,9 @@ WatchFaceAnalog::WatchFaceAnalog(Controllers::DateTime& dateTimeController,
 
   label_date_day = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_set_style_local_text_color(label_date_day, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, Colors::orange);
-  lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
+  lv_label_set_text_fmt(label_date_day, "%s", dateTimeController.FormattedDate().c_str());
   lv_label_set_align(label_date_day, LV_LABEL_ALIGN_CENTER);
-  lv_obj_align(label_date_day, nullptr, LV_ALIGN_CENTER, 50, 0);
+  lv_obj_align(label_date_day, nullptr, LV_ALIGN_CENTER, 0, 40);
 
   minute_body = lv_line_create(lv_scr_act(), nullptr);
   minute_body_trace = lv_line_create(lv_scr_act(), nullptr);
@@ -258,7 +258,7 @@ void WatchFaceAnalog::Refresh() {
 
     currentDate = std::chrono::time_point_cast<std::chrono::days>(currentDateTime.Get());
     if (currentDate.IsUpdated()) {
-      lv_label_set_text_fmt(label_date_day, "%s\n%02i", dateTimeController.DayOfWeekShortToString(), dateTimeController.Day());
+      lv_label_set_text_fmt(label_date_day, "%s", dateTimeController.FormattedDate().c_str());
     }
   }
 }

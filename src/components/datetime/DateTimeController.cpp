@@ -5,6 +5,7 @@
 #include "nrf_assert.h"
 
 using namespace Pinetime::Controllers;
+using namespace std::chrono_literals;
 
 namespace {
   char const* DaysStringShort[] = {"--", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
@@ -162,5 +163,34 @@ std::string DateTime::FormattedTime() {
   } else {
     snprintf(buff, sizeof(buff), "%02i:%02i", hour, minute);
   }
+  return std::string(buff);
+}
+
+int congress_mode_get_current_day(int diff_from_start) {
+  // NRF_LOG_INFO("%i", diff_from_start);
+  // NRF_LOG_INFO("%f", static_cast<float>(diff_from_start)/24);
+  return ceil(static_cast<float>(diff_from_start)/24);
+}
+
+std::string DateTime::FormattedDate() {
+  char buff[16];
+  auto day = Day();
+  auto cm = settingsController.GetCongressMode();
+  if (cm.enabled) {
+    auto start = cm.day_0;
+    auto end = cm.day_0 + 24h * cm.length;
+    auto diff_from_start = std::chrono::duration_cast<std::chrono::hours>(CurrentDateTime() - cm.day_0).count();
+    // if (diff_from_start < 0) diff_from_start--;
+    if (congress_mode_get_current_day(diff_from_start) > cm.length) {
+      snprintf(buff, sizeof(buff), "Day +%i (%02d.)", congress_mode_get_current_day(diff_from_start) - cm.length, short(day));
+    } else {
+      snprintf(buff, sizeof(buff), "Day %i", congress_mode_get_current_day(diff_from_start));
+    }
+    return std::string(buff);
+  }
+  auto month = Month();
+  auto year = Year();
+  // weekday for mayze
+  snprintf(buff, sizeof(buff), "%04d-%02d-%02d %s", short(year), short(month), short(day), DayOfWeekShortToString());
   return std::string(buff);
 }

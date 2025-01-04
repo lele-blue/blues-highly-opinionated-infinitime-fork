@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <bitset>
+#include <chrono>
 #include "components/brightness/BrightnessController.h"
 #include "components/fs/FS.h"
 #include "displayapp/apps/Apps.h"
@@ -48,6 +49,12 @@ namespace Pinetime {
       struct WatchFaceInfineat {
         bool showSideCover = true;
         int colorIndex = 0;
+      };
+      
+      struct CongressMode {
+        bool enabled = false;
+        std::chrono::system_clock::time_point day_0 = std::chrono::system_clock::now();
+        uint8_t length = 3;
       };
 
       Settings(Pinetime::Controllers::FS& fs);
@@ -170,6 +177,20 @@ namespace Pinetime {
         return settingsMenu;
       };
 
+      void SetCongressMode(bool enable, std::chrono::system_clock::time_point day_0, uint8_t length) {
+        if (enable != settings.congressMode.enabled || day_0 != settings.congressMode.day_0 || length != settings.congressMode.length) {
+          settingsChanged = true;
+        }
+        settings.congressMode.enabled = enable;
+        settings.congressMode.day_0 = day_0;
+        settings.congressMode.length = length;
+      };
+
+      CongressMode GetCongressMode() const {
+        return settings.congressMode;
+      };
+
+
       void SetClockType(ClockType clocktype) {
         if (clocktype != settings.clockType) {
           settingsChanged = true;
@@ -286,7 +307,8 @@ namespace Pinetime {
     private:
       Pinetime::Controllers::FS& fs;
 
-      static constexpr uint32_t settingsVersion = 0x0007;
+      // high number to not collide with a mainline infinitime release and cause heavoc (they wont ever catch up, im sure)
+      static constexpr uint32_t settingsVersion = 0x0069;
 
       struct SettingsData {
         uint32_t version = settingsVersion;
@@ -308,6 +330,8 @@ namespace Pinetime {
         uint16_t shakeWakeThreshold = 150;
 
         Controllers::BrightnessController::Levels brightLevel = Controllers::BrightnessController::Levels::Medium;
+
+        CongressMode congressMode;
       };
 
       SettingsData settings;

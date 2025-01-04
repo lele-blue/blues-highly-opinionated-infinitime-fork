@@ -19,6 +19,7 @@ namespace Pinetime {
           const char* icon;
           const char* name;
           Pinetime::Applications::Apps application;
+          bool is_material;
         };
 
         explicit List(uint8_t screenID,

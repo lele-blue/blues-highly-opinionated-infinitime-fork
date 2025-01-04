@@ -1,4 +1,5 @@
 #include <lvgl/lvgl.h>
+#include <libraries/log/nrf_log.h>
 #include "displayapp/screens/WatchFaceMinimal.h"
 #include "components/battery/BatteryController.h"
 #include "components/ble/BleController.h"
@@ -67,7 +68,9 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
 
   label_prompt_2 = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(label_prompt_2, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 100);
-  lv_label_set_text_static(label_prompt_2, "<3");
+  lv_label_set_text_static(label_prompt_2, MINIMAL_BOTTOM_LINE);
+  // lv_label_set_text_static(label_prompt_2, "<3 Lex & Jakob&80085");
+  // lv_label_set_text_static(label_prompt_2, "bebo mebo <3");
 
   label_time = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(label_time, true);
@@ -186,16 +189,13 @@ void WatchFaceMinimal::Refresh() {
       lv_label_set_text_fmt(seconds, ":%02d %s", second, ampmChar);
       lv_label_set_text_fmt(label_time, "#11cc55 %02d:%02d:%02d %s#", hour, minute, second, ampmChar);
     } else {
-      lv_label_set_text_fmt(seconds, ":%02d %s", second);
+      lv_label_set_text_fmt(seconds, ":%02d", second);
       lv_label_set_text_fmt(label_time, "#11cc55 %02d:%02d:%02d", hour, minute, second);
     }
 
     currentDate = std::chrono::time_point_cast<std::chrono::days>(currentDateTime.Get());
     if (currentDate.IsUpdated()) {
-      uint16_t year = dateTimeController.Year();
-      Controllers::DateTime::Months month = dateTimeController.Month();
-      uint8_t day = dateTimeController.Day();
-      lv_label_set_text_fmt(label_date, "#007fff %04d-%02d-%02d#", short(year), char(month), char(day));
+      lv_label_set_text_fmt(label_date, "#007fff %s#", dateTimeController.FormattedDate().c_str());
     }
   }
 
@@ -203,7 +203,7 @@ void WatchFaceMinimal::Refresh() {
   heartbeatRunning = heartRateController.State() != Controllers::HeartRateController::States::Stopped;
   if (heartbeat.IsUpdated() || heartbeatRunning.IsUpdated()) {
     if (heartbeatRunning.Get()) {
-      lv_label_set_text_fmt(heartbeatValue, "HR#ee3311 %d bpm#", heartbeat.Get());
+      lv_label_set_text_fmt(heartbeatValue, "HR#ee3311  %d bpm#", heartbeat.Get());
     } else {
       lv_label_set_text_static(heartbeatValue, "HR#ee3311 ---#");
     }
