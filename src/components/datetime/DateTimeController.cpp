@@ -177,8 +177,6 @@ std::string DateTime::FormattedDate() {
   auto day = Day();
   auto cm = settingsController.GetCongressMode();
   if (cm.enabled) {
-    auto start = cm.day_0;
-    auto end = cm.day_0 + 24h * cm.length;
     auto diff_from_start = std::chrono::duration_cast<std::chrono::hours>(CurrentDateTime() - cm.day_0).count();
     // if (diff_from_start < 0) diff_from_start--;
     if (congress_mode_get_current_day(diff_from_start) > cm.length) {
