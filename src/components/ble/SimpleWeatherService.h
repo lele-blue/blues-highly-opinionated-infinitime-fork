@@ -19,7 +19,7 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
+#include <array>
 #include <memory>
 #include <cmath>
 
@@ -68,6 +68,35 @@ namespace Pinetime {
         Unknown = 255
       };
 
+      class Temperature {
+      public:
+        explicit Temperature(int16_t raw) : raw {raw} {
+        }
+
+        [[nodiscard]] int16_t PreciseCelsius() const {
+          return raw;
+        }
+
+        [[nodiscard]] int16_t PreciseFahrenheit() const {
+          return raw * 9 / 5 + 3200;
+        }
+
+        [[nodiscard]] int16_t Celsius() const {
+          return (PreciseCelsius() + 50) / 100;
+        }
+
+        [[nodiscard]] int16_t Fahrenheit() const {
+          return (PreciseFahrenheit() + 50) / 100;
+        }
+
+        bool operator==(const Temperature& other) const {
+          return raw == other.raw;
+        }
+
+      private:
+        int16_t raw;
+      };
+
       using Location = std::array<char, 33>; // 32 char + \0 (end of string)
                                              //
       struct Time {
@@ -82,9 +111,9 @@ namespace Pinetime {
 
       struct CurrentWeather {
         CurrentWeather(uint64_t timestamp,
-                       int16_t temperature,
-                       int16_t minTemperature,
-                       int16_t maxTemperature,
+                       Temperature temperature,
+                       Temperature minTemperature,
+                       Temperature maxTemperature,
                        Icons iconId,
                        Location&& location)
           : timestamp {timestamp},
@@ -96,9 +125,9 @@ namespace Pinetime {
         }
 
         uint64_t timestamp;
-        int16_t temperature;
-        int16_t minTemperature;
-        int16_t maxTemperature;
+        Temperature temperature;
+        Temperature minTemperature;
+        Temperature maxTemperature;
         Icons iconId;
         Location location;
 
@@ -110,14 +139,14 @@ namespace Pinetime {
         uint8_t nbDays;
 
         struct Day {
-          int16_t minTemperature;
-          int16_t maxTemperature;
+          Temperature minTemperature;
+          Temperature maxTemperature;
           Icons iconId;
 
           bool operator==(const Day& other) const;
         };
 
-        std::array<Day, MaxNbForecastDays> days;
+        std::array<std::optional<Day>, MaxNbForecastDays> days;
 
         bool operator==(const Forecast& other) const;
       };
@@ -125,10 +154,6 @@ namespace Pinetime {
       std::optional<CurrentWeather> Current() const;
       
       std::optional<Forecast> GetForecast() const;
-
-      static int16_t CelsiusToFahrenheit(int16_t celsius) {
-        return celsius * 9 / 5 + 3200;
-      }
 
     private:
       // 00050000-78fc-48fe-8e23-433b3a1942d0

@@ -37,14 +37,15 @@ QuickSettings::QuickSettings(Pinetime::Applications::DisplayApp* app,
                              Controllers::MotorController& motorController,
                              Pinetime::Controllers::Settings& settingsController,
                              const Controllers::Ble& bleController,
-                             Controllers::HeartRateController& heartRateController)
+                             Controllers::HeartRateController& heartRateController,
+                             const Controllers::AlarmController& alarmController)
   : app {app},
     dateTimeController {dateTimeController},
     brightness {brightness},
     motorController {motorController},
     settingsController {settingsController},
     heartRateController {heartRateController},
-    statusIcons(batteryController, bleController) {
+    statusIcons(batteryController, bleController, alarmController) {
 
   statusIcons.Create();
 

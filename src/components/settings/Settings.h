@@ -2,7 +2,6 @@
 #include <cstdint>
 #include <bitset>
 #include <chrono>
-#include "components/brightness/BrightnessController.h"
 #include "components/fs/FS.h"
 #include "displayapp/apps/Apps.h"
 
@@ -37,6 +36,7 @@ namespace Pinetime {
       };
       enum class PTSGaugeStyle : uint8_t { Full, Half, Numeric };
       enum class PTSWeather : uint8_t { On, Off };
+      enum class PrideFlag : uint8_t { Gay, Trans, Bi, Lesbian };
 
       struct PineTimeStyle {
         Colors ColorTime = Colors::Teal;
@@ -161,6 +161,16 @@ namespace Pinetime {
         return settings.PTS.weatherEnable;
       };
 
+      void SetPrideFlag(PrideFlag prideFlag) {
+        if (prideFlag != settings.prideFlag)
+          settingsChanged = true;
+        settings.prideFlag = prideFlag;
+      };
+
+      PrideFlag GetPrideFlag() const {
+        return settings.prideFlag;
+      };
+
       void SetAppMenu(uint8_t menu) {
         appMenu = menu;
       };
@@ -235,6 +245,21 @@ namespace Pinetime {
         return settings.screenTimeOut;
       };
 
+      bool GetAlwaysOnDisplay() const {
+        return settings.alwaysOnDisplay && GetNotificationStatus() != Notification::Sleep;
+      };
+
+      void SetAlwaysOnDisplaySetting(bool state) {
+        if (state != settings.alwaysOnDisplay) {
+          settingsChanged = true;
+        }
+        settings.alwaysOnDisplay = state;
+      }
+
+      bool GetAlwaysOnDisplaySetting() const {
+        return settings.alwaysOnDisplay;
+      }
+
       void SetShakeThreshold(uint16_t thresh) {
         if (settings.shakeWakeThreshold != thresh) {
           settings.shakeWakeThreshold = thresh;
@@ -308,12 +333,14 @@ namespace Pinetime {
       Pinetime::Controllers::FS& fs;
 
       // high number to not collide with a mainline infinitime release and cause heavoc (they wont ever catch up, im sure)
-      static constexpr uint32_t settingsVersion = 0x0069;
+      static constexpr uint32_t settingsVersion = 0x0070;
 
       struct SettingsData {
         uint32_t version = settingsVersion;
         uint32_t stepsGoal = 10000;
         uint32_t screenTimeOut = 15000;
+
+        bool alwaysOnDisplay = false;
 
         ClockType clockType = ClockType::H24;
         WeatherFormat weatherFormat = WeatherFormat::Metric;
@@ -323,6 +350,8 @@ namespace Pinetime {
         ChimesOption chimesOption = ChimesOption::None;
 
         PineTimeStyle PTS;
+
+        PrideFlag prideFlag = PrideFlag::Gay;
 
         WatchFaceInfineat watchFaceInfineat;
 

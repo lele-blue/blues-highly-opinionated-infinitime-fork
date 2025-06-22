@@ -41,7 +41,7 @@ namespace Pinetime {
        *
        * used to update difference between utc and local time (see UtcOffset())
        *
-       * parameters are in quarters of an our. Following the BLE CTS specification,
+       * parameters are in quarters of an hour. Following the BLE CTS specification,
        * timezone is expected to be constant over DST which will be reported in
        * dst field.
        */
@@ -121,8 +121,10 @@ namespace Pinetime {
 
       const char* MonthShortToString() const;
       const char* DayOfWeekShortToString() const;
+      const char* DayOfWeekToString() const;
       static const char* MonthShortToStringLow(Months month);
       static const char* DayOfWeekShortToStringLow(Days day);
+      static const char* DayOfWeekToStringLow(Days day);
 
       std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> CurrentDateTime();
 

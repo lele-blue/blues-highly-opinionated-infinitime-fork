@@ -8,16 +8,31 @@ using namespace Pinetime::Controllers;
 using namespace std::chrono_literals;
 
 namespace {
-  char const* DaysStringShort[] = {"--", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
-  char const* DaysStringShortLow[] = {"--", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-  char const* MonthsString[] = {"--", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
-  char const* MonthsStringLow[] = {"--", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+  constexpr const char* const DaysStringShort[] = {"--", "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+  constexpr const char* const DaysStringShortLow[] = {"--", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+  constexpr const char* const DaysString[] = {"--", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"};
+  constexpr const char* const DaysStringLow[] = {"--", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+  constexpr const char* const MonthsString[] = {"--", "JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
+  constexpr const char* const MonthsStringLow[] =
+    {"--", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+
+  constexpr int compileTimeAtoi(const char* str) {
+    int result = 0;
+    while (*str >= '0' && *str <= '9') {
+      result = result * 10 + *str - '0';
+      str++;
+    }
+    return result;
+  }
 }
 
 DateTime::DateTime(Controllers::Settings& settingsController) : settingsController {settingsController} {
   mutex = xSemaphoreCreateMutex();
   ASSERT(mutex != nullptr);
   xSemaphoreGive(mutex);
+
+  // __DATE__ is a string of the format "MMM DD YYYY", so an offset of 7 gives the start of the year
+  SetTime(compileTimeAtoi(&__DATE__[7]), 1, 1, 0, 0, 0);
 }
 
 void DateTime::SetCurrentTime(std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> t) {
@@ -47,7 +62,9 @@ void DateTime::SetTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, 
   UpdateTime(previousSystickCounter, true);
   xSemaphoreGive(mutex);
 
-  systemTask->PushMessage(System::Messages::OnNewTime);
+  if (systemTask != nullptr) {
+    systemTask->PushMessage(System::Messages::OnNewTime);
+  }
 }
 
 void DateTime::SetTimeZone(int8_t timezone, int8_t dst) {
@@ -130,12 +147,20 @@ const char* DateTime::DayOfWeekShortToString() const {
   return DaysStringShort[static_cast<uint8_t>(DayOfWeek())];
 }
 
+const char* DateTime::DayOfWeekToString() const {
+  return DaysString[static_cast<uint8_t>(DayOfWeek())];
+}
+
 const char* DateTime::MonthShortToStringLow(Months month) {
   return MonthsStringLow[static_cast<uint8_t>(month)];
 }
 
 const char* DateTime::DayOfWeekShortToStringLow(Days day) {
   return DaysStringShortLow[static_cast<uint8_t>(day)];
+}
+
+const char* DateTime::DayOfWeekToStringLow(Days day) {
+  return DaysStringLow[static_cast<uint8_t>(day)];
 }
 
 void DateTime::Register(Pinetime::System::SystemTask* systemTask) {
