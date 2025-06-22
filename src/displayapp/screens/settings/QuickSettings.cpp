@@ -1,4 +1,5 @@
 #include "displayapp/screens/settings/QuickSettings.h"
+#include "components/heartrate/HeartRateController.h"
 #include "displayapp/DisplayApp.h"
 #include "displayapp/screens/Symbols.h"
 #include "displayapp/screens/BatteryIcon.h"
@@ -21,6 +22,8 @@ namespace {
   }
 
   enum class ButtonState : lv_state_t {
+    HeartRateOn = LV_STATE_CHECKED,
+    HeartRateOff = LV_STATE_DEFAULT,
     NotificationsOn = LV_STATE_CHECKED,
     NotificationsOff = LV_STATE_DEFAULT,
     Sleep = 0x40,
@@ -33,12 +36,14 @@ QuickSettings::QuickSettings(Pinetime::Applications::DisplayApp* app,
                              Controllers::BrightnessController& brightness,
                              Controllers::MotorController& motorController,
                              Pinetime::Controllers::Settings& settingsController,
-                             const Controllers::Ble& bleController)
+                             const Controllers::Ble& bleController,
+                             Controllers::HeartRateController& heartRateController)
   : app {app},
     dateTimeController {dateTimeController},
     brightness {brightness},
     motorController {motorController},
     settingsController {settingsController},
+    heartRateController {heartRateController},
     statusIcons(batteryController, bleController) {
 
   statusIcons.Create();
@@ -82,7 +87,13 @@ QuickSettings::QuickSettings(Pinetime::Applications::DisplayApp* app,
   lv_obj_t* lbl_btn;
   lbl_btn = lv_label_create(btn2, nullptr);
   lv_obj_set_style_local_text_font(lbl_btn, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &lv_font_sys_48);
-  lv_label_set_text_static(lbl_btn, Symbols::flashlight);
+  lv_label_set_text_static(lbl_btn, Symbols::heartRateLg);
+  lv_obj_set_style_local_bg_color(btn2, LV_BTN_PART_MAIN, static_cast<lv_state_t>(ButtonState::HeartRateOff), LV_COLOR_RED);
+  if (heartRateController.State() == Controllers::HeartRateController::States::Stopped) {
+      lv_obj_set_state(btn2, static_cast<lv_state_t>(ButtonState::HeartRateOff));
+  } else {
+      lv_obj_set_state(btn2, static_cast<lv_state_t>(ButtonState::HeartRateOn));
+  }
 
   btn3 = lv_btn_create(lv_scr_act(), nullptr);
   btn3->user_data = this;
@@ -137,7 +148,14 @@ void QuickSettings::UpdateScreen() {
 
 void QuickSettings::OnButtonEvent(lv_obj_t* object) {
   if (object == btn2) {
-    app->StartApp(Apps::FlashLight, DisplayApp::FullRefreshDirections::Up);
+    if (heartRateController.State() == Controllers::HeartRateController::States::Stopped) {
+      heartRateController.Start();
+      motorController.RunForDuration(35);
+      lv_obj_set_state(btn2, static_cast<lv_state_t>(ButtonState::HeartRateOn));
+    } else {
+      heartRateController.Stop();
+      lv_obj_set_state(btn2, static_cast<lv_state_t>(ButtonState::HeartRateOff));
+    }
   } else if (object == btn1) {
 
     brightness.Step();

@@ -64,6 +64,7 @@ namespace Pinetime {
 
         static constexpr const char* flashlight = "\xEF\x80\x8B";
         static constexpr const char* paintbrushLg = "\xEE\x90\x8A";
+        static constexpr const char* heartRateLg = "\xEE\xAA\xA2";
 
         // custom
         static constexpr const char* ccc = "\xEE\xAE\x9B";

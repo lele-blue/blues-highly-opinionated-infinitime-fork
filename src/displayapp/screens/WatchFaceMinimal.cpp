@@ -130,13 +130,12 @@ void WatchFaceMinimal::Refresh() {
   }
 
   notificationState = notificationManager.AreNewNotificationsAvailable();
-  if (notificationState.IsUpdated()) {
-    if (notificationState.Get()) {
-      lv_label_set_text_static(notificationIcon, "+NEW+");
-    } else {
-      lv_label_set_text_static(notificationIcon, "-");
-    }
-  }
+  // static char statusBuf[16];
+  // statusBuf[15] = '\0';
+  // if (notificationState.IsUpdated()) {
+  //   statusBuf[0] = notificationState.Get() ? 'N' : ' ';
+  // }
+  // lv_label_set_text_static(notificationIcon, statusBuf);
 
   currentWeather = weatherService.Current();
   if (currentWeather.IsUpdated()) {

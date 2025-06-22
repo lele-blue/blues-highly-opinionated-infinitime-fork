@@ -6,6 +6,7 @@
 #include "components/datetime/DateTimeController.h"
 #include "components/brightness/BrightnessController.h"
 #include "components/motor/MotorController.h"
+#include "components/heartrate/HeartRateController.h"
 #include "components/settings/Settings.h"
 #include "components/battery/BatteryController.h"
 #include "displayapp/widgets/StatusIcons.h"
@@ -23,7 +24,8 @@ namespace Pinetime {
                       Controllers::BrightnessController& brightness,
                       Controllers::MotorController& motorController,
                       Pinetime::Controllers::Settings& settingsController,
-                      const Controllers::Ble& bleController);
+                      const Controllers::Ble& bleController,
+                      Controllers::HeartRateController& heartRateController);
 
         ~QuickSettings() override;
 
@@ -37,6 +39,7 @@ namespace Pinetime {
         Controllers::BrightnessController& brightness;
         Controllers::MotorController& motorController;
         Controllers::Settings& settingsController;
+        Controllers::HeartRateController& heartRateController;
 
         lv_task_t* taskUpdate;
         lv_obj_t* label_time;
