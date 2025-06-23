@@ -129,4 +129,4 @@ The new Minimal Watch Face features a "GlanceBar", that displays status events a
 - Green V: Low **V**oltage in battery (below 15%)
 - Yellow C: **C**harging
 - Pink S: Alarm rings in &lt;8 hours, you should **s**leep
-- Red "S!": Alarm rings in &lt;5 hours, you should realy **s**leep**!**
+- Red "S!": Alarm rings in &lt;5 hours, you should really **s**leep **!**
