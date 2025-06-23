@@ -125,7 +125,7 @@ The new Minimal Watch Face features a "GlanceBar", that displays status events a
 ## Legend
 - White N: Missed **N**otifications
 - Blue N: **N**o Bluetooth connection
-- Red N: **B**luetooth disabled
+- Red B: **B**luetooth disabled
 - Green V: Low **V**oltage in battery (below 15%)
 - Yellow C: **C**harging
 - Pink S: Alarm rings in &lt;8 hours, you should **s**leep
