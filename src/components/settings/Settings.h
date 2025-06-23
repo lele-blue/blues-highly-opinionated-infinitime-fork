@@ -4,6 +4,7 @@
 #include <chrono>
 #include "components/fs/FS.h"
 #include "displayapp/apps/Apps.h"
+#include "components/brightness/BrightnessController.h"
 
 namespace Pinetime {
   namespace Controllers {

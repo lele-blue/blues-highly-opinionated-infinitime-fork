@@ -117,3 +117,16 @@ Here are some people I would like to highlight:
 - [Atc1441](https://github.com/atc1441/): He works on an Arduino based firmware for the Pinetime and many other smartwatches based on similar hardware. He was of great help when I was implementing support for the BMA421 motion sensor and I²C driver.
 - [Koen](https://github.com/bosmoment): He’s working on a firmware based on RiotOS. He integrated similar libs as me: NimBLE, LittleVGL,… His help was invaluable too!
 - [Lup Yuen Lee](https://github.com/lupyuen): He is everywhere: he works on a Rust firmware, builds a MCUBoot based bootloader for the Pinetime, designs a Flutter based companion app for smartphones and writes a lot of articles about the Pinetime!
+
+# The Minimal GlanceBar
+
+The new Minimal Watch Face features a "GlanceBar", that displays status events as colored letters.
+
+## Legend
+- White N: Missed **N**otifications
+- Blue N: **N**o Bluetooth connection
+- Red N: **B**luetooth disabled
+- Green V: Low **V**oltage in battery (below 15%)
+- Yellow C: **C**harging
+- Pink S: Alarm rings in &lt;8 hours, you should **s**leep
+- Red "S!": Alarm rings in &lt;5 hours, you should realy **s**leep**!**
