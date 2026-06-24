@@ -16,14 +16,28 @@ void Timer::StartTimer(std::chrono::milliseconds duration) {
   totalTime = duration;
   xTimerChangePeriod(timer, pdMS_TO_TICKS(duration.count()), 0);
   xTimerStart(timer, 0);
+  expiry = xTimerGetExpiryTime(timer);
+  triggered = true;
 }
 
-std::chrono::milliseconds Timer::GetTimeRemaining() {
+// nullopt if timer stopped (StopTimer called / StartTimer not yet called)
+// otherwise TimerStatus with the ticks until/since expiry (depending on state of expired flag)
+std::optional<Timer::TimerStatus> Timer::GetTimerState() {
   if (IsRunning()) {
-    TickType_t remainingTime = xTimerGetExpiryTime(timer) - xTaskGetTickCount();
-    return std::chrono::milliseconds(remainingTime * 1000 / configTICK_RATE_HZ);
+    TickType_t remainingTime = expiry - xTaskGetTickCount();
+    return std::make_optional<Timer::TimerStatus>(
+      {.distanceToExpiry = std::chrono::seconds(remainingTime / configTICK_RATE_HZ) +
+                           std::chrono::milliseconds((remainingTime % configTICK_RATE_HZ) * 1000 / configTICK_RATE_HZ),
+       .expired = false});
   }
-  return std::chrono::milliseconds(0);
+  if (triggered) {
+    TickType_t timeSinceExpiry = xTaskGetTickCount() - expiry;
+    return std::make_optional<Timer::TimerStatus>(
+      {.distanceToExpiry = std::chrono::seconds(timeSinceExpiry / configTICK_RATE_HZ) +
+                           std::chrono::milliseconds((timeSinceExpiry % configTICK_RATE_HZ) * 1000 / configTICK_RATE_HZ),
+       .expired = true});
+  }
+  return std::nullopt;
 }
 
 float Timer::GetFractionRemaining() {
@@ -32,6 +46,7 @@ float Timer::GetFractionRemaining() {
 
 void Timer::StopTimer() {
   xTimerStop(timer, 0);
+  triggered = false;
 }
 
 
@@ -51,4 +66,8 @@ void Timer::Ring() {
 
 bool Timer::IsRunning() {
   return (xTimerIsTimerActive(timer) == pdTRUE);
+}
+
+void Timer::ResetExpiredTime() {
+  triggered = false;
 }

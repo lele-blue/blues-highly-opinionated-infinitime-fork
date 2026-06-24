@@ -49,13 +49,18 @@
 #include "displayapp/screens/settings/SettingSetDateTime.h"
 #include "displayapp/screens/settings/SettingCongressMode.h"
 #include "displayapp/screens/settings/SettingChimes.h"
+#include "displayapp/screens/settings/SettingHeartRate.h"
 #include "displayapp/screens/settings/SettingShakeThreshold.h"
 #include "displayapp/screens/settings/SettingBluetooth.h"
+#include "displayapp/screens/settings/SettingOTA.h"
+
+#include "utility/Math.h"
 
 #include "libs/lv_conf.h"
 #include "UserApps.h"
 
 #include <algorithm>
+#include <limits>
 
 using namespace Pinetime::Applications;
 using namespace Pinetime::Applications::Display;
@@ -82,6 +87,7 @@ DisplayApp::DisplayApp(Drivers::St7789& lcd,
                        Controllers::Settings& settingsController,
                        Pinetime::Controllers::MotorController& motorController,
                        Pinetime::Controllers::MotionController& motionController,
+                       Pinetime::Controllers::StopWatchController& stopWatchController,
                        Pinetime::Controllers::AlarmController& alarmController,
                        Pinetime::Controllers::BrightnessController& brightnessController,
                        Pinetime::Controllers::TouchHandler& touchHandler,
@@ -98,6 +104,7 @@ DisplayApp::DisplayApp(Drivers::St7789& lcd,
     settingsController {settingsController},
     motorController {motorController},
     motionController {motionController},
+    stopWatchController {stopWatchController},
     alarmController {alarmController},
     brightnessController {brightnessController},
     touchHandler {touchHandler},
@@ -113,6 +120,7 @@ DisplayApp::DisplayApp(Drivers::St7789& lcd,
                  settingsController,
                  motorController,
                  motionController,
+                 stopWatchController,
                  alarmController,
                  brightnessController,
                  nullptr,
@@ -130,15 +138,6 @@ void DisplayApp::Start(System::BootErrors error) {
 
   bootError = error;
 
-  lvgl.Init();
-  motorController.Init();
-
-  if (error == System::BootErrors::TouchController) {
-    LoadNewScreen(Apps::Error, DisplayApp::FullRefreshDirections::None);
-  } else {
-    LoadNewScreen(Apps::Clock, DisplayApp::FullRefreshDirections::None);
-  }
-
   if (pdPASS != xTaskCreate(DisplayApp::Process, "displayapp", 800, this, 0, &taskHandle)) {
     APP_ERROR_HANDLER(NRF_ERROR_NO_MEM);
   }
@@ -147,35 +146,40 @@ void DisplayApp::Start(System::BootErrors error) {
 void DisplayApp::Process(void* instance) {
   auto* app = static_cast<DisplayApp*>(instance);
   NRF_LOG_INFO("displayapp task started!");
-  app->InitHw();
+  app->Init();
+
+  if (app->bootError == System::BootErrors::TouchController) {
+    app->LoadNewScreen(Apps::Error, DisplayApp::FullRefreshDirections::None);
+  } else {
+    app->LoadNewScreen(Apps::Clock, DisplayApp::FullRefreshDirections::None);
+  }
 
   while (true) {
     app->Refresh();
   }
 }
 
-void DisplayApp::InitHw() {
+void DisplayApp::Init() {
+  lcd.Init();
+  motorController.Init();
   brightnessController.Init();
   ApplyBrightness();
-  lcd.Init();
+  lvgl.Init();
 }
 
 TickType_t DisplayApp::CalculateSleepTime() {
   // Calculates how many system ticks DisplayApp should sleep before rendering the next AOD frame
   // Next frame time is frame count * refresh period (ms) * tick rate
 
-  auto RoundedDiv = [](uint32_t a, uint32_t b) {
-    return ((a + (b / 2)) / b);
-  };
-  // RoundedDiv overflows when numerator + (denominator floordiv 2) > uint32 max
-  // in this case around 9 hours (=overflow frame count / always on refresh period)
-  constexpr TickType_t overflowFrameCount = (UINT32_MAX - (1000 / 16)) / ((configTICK_RATE_HZ / 8) * alwaysOnRefreshPeriod);
+  // Avoid overflow when numerator would be > uint32 max
+  // in this case around 18 hours (=overflow frame count / always on refresh period)
+  constexpr TickType_t overflowFrameCount = std::numeric_limits<TickType_t>::max() / ((configTICK_RATE_HZ / 8) * alwaysOnRefreshPeriod);
 
   TickType_t ticksElapsed = xTaskGetTickCount() - alwaysOnStartTime;
   // Divide both the numerator and denominator by 8 (=GCD(1000,1024))
   // to increase the number of ticks (frames) before the overflow tick is reached
-  TickType_t targetRenderTick = RoundedDiv((configTICK_RATE_HZ / 8) * alwaysOnFrameCount * alwaysOnRefreshPeriod, 1000 / 8);
-
+  TickType_t targetRenderTick =
+    Utility::RoundedDiv((configTICK_RATE_HZ / 8) * alwaysOnFrameCount * alwaysOnRefreshPeriod, static_cast<uint32_t>(1000 / 8));
   // Assumptions
 
   // Tick rate is multiple of 8
@@ -185,7 +189,8 @@ TickType_t DisplayApp::CalculateSleepTime() {
   // Frame count must always wraparound more often than the system tick count does
   // Always on overflow time (ms) < system tick overflow time (ms)
   // Using 64bit ints here to avoid overflow
-  static_assert((uint64_t) overflowFrameCount * (uint64_t) alwaysOnRefreshPeriod < (uint64_t) UINT32_MAX * 1000ULL / configTICK_RATE_HZ);
+  static_assert((uint64_t) overflowFrameCount * (uint64_t) alwaysOnRefreshPeriod <
+                (uint64_t) std::numeric_limits<TickType_t>::max() * 1000ULL / configTICK_RATE_HZ);
 
   if (alwaysOnFrameCount == overflowFrameCount) {
     alwaysOnFrameCount = 0;
@@ -365,19 +370,22 @@ void DisplayApp::Refresh() {
       case Messages::NewNotification:
         LoadNewScreen(Apps::NotificationsPreview, DisplayApp::FullRefreshDirections::Down);
         break;
-      case Messages::TimerDone:
+      case Messages::TimerDone: {
         if (state != States::Running) {
           PushMessageToSystemTask(System::Messages::GoToRunning);
         }
-        if (currentApp == Apps::Timer) {
-          lv_disp_trig_activity(nullptr);
-          auto* timer = static_cast<Screens::Timer*>(currentScreen.get());
-          timer->Reset();
-        } else {
+        lv_disp_trig_activity(nullptr);
+        // Load timer app if not loaded
+        if (currentApp != Apps::Timer) {
           LoadNewScreen(Apps::Timer, DisplayApp::FullRefreshDirections::Up);
+        } else {
+          // Set the timer to ringing mode if already loaded
+          auto* timerScreen = static_cast<Screens::Timer*>(currentScreen.get());
+          timerScreen->SetTimerRinging();
         }
         timer.StartRinging();
         break;
+      }
       case Messages::AlarmTriggered:
         if (currentApp == Apps::Alarm) {
           auto* alarm = static_cast<Screens::Alarm*>(currentScreen.get());
@@ -519,8 +527,8 @@ void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections directio
   switch (app) {
     case Apps::Launcher: {
       std::array<Screens::Tile::Applications, UserAppTypes::Count> apps;
-      std::ranges::transform(userApps, apps.begin(), [](const auto& userApp) {
-        return Screens::Tile::Applications {userApp.icon, userApp.app, true};
+      std::ranges::transform(userApps, apps.begin(), [this](const auto& userApp) {
+        return Screens::Tile::Applications {userApp.icon, userApp.app, userApp.isAvailable(controllers.filesystem)};
       });
       currentScreen = std::make_unique<Screens::ApplicationList>(this,
                                                                  settingsController,
@@ -605,6 +613,9 @@ void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections directio
     case Apps::SettingWakeUp:
       currentScreen = std::make_unique<Screens::SettingWakeUp>(settingsController);
       break;
+    case Apps::SettingHeartRate:
+      currentScreen = std::make_unique<Screens::SettingHeartRate>(settingsController);
+      break;
     case Apps::SettingDisplay:
       currentScreen = std::make_unique<Screens::SettingDisplay>(settingsController);
       break;
@@ -622,6 +633,9 @@ void DisplayApp::LoadScreen(Apps app, DisplayApp::FullRefreshDirections directio
       break;
     case Apps::SettingBluetooth:
       currentScreen = std::make_unique<Screens::SettingBluetooth>(this, settingsController);
+      break;
+    case Apps::SettingOTA:
+      currentScreen = std::make_unique<Screens::SettingOTA>(this, settingsController);
       break;
     case Apps::BatteryInfo:
       currentScreen = std::make_unique<Screens::BatteryInfo>(batteryController);
