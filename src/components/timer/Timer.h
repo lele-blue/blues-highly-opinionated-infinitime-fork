@@ -30,13 +30,13 @@ namespace Pinetime {
       void StartRinging();
       void Ring();
 
+      std::optional<TimerStatus> GetTimerState();
+      void ResetExpiredTime();
     private:
       TimerHandle_t timer;
       std::chrono::milliseconds totalTime;
       MotorController *motorController;
-      std::optional<TimerStatus> GetTimerState();
 
-      void ResetExpiredTime();
 
       TickType_t expiry;
       bool triggered = false;

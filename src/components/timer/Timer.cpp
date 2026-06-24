@@ -44,6 +44,14 @@ float Timer::GetFractionRemaining() {
   return static_cast<float>(this->GetTimeRemaining().count()) / static_cast<float>(totalTime.count());
 }
 
+std::chrono::milliseconds Timer::GetTimeRemaining() {
+  if (IsRunning()) {
+    TickType_t remainingTime = xTimerGetExpiryTime(timer) - xTaskGetTickCount();
+    return std::chrono::milliseconds(remainingTime * 1000 / configTICK_RATE_HZ);
+  }
+  return std::chrono::milliseconds(0);
+}
+
 void Timer::StopTimer() {
   xTimerStop(timer, 0);
   triggered = false;

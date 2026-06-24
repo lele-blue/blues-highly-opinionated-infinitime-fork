@@ -150,11 +150,11 @@ void QuickSettings::UpdateScreen() {
 void QuickSettings::OnButtonEvent(lv_obj_t* object) {
   if (object == btn2) {
     if (heartRateController.State() == Controllers::HeartRateController::States::Stopped) {
-      heartRateController.Start();
+      heartRateController.Enable();
       motorController.RunForDuration(35);
       lv_obj_set_state(btn2, static_cast<lv_state_t>(ButtonState::HeartRateOn));
     } else {
-      heartRateController.Stop();
+      heartRateController.Disable();
       lv_obj_set_state(btn2, static_cast<lv_state_t>(ButtonState::HeartRateOff));
     }
   } else if (object == btn1) {
