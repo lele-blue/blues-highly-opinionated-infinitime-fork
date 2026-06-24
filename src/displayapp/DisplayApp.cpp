@@ -104,7 +104,7 @@ DisplayApp::DisplayApp(Drivers::St7789& lcd,
     filesystem {filesystem},
     spiNorFlash {spiNorFlash},
     lvgl {lcd, filesystem},
-    timer(this, TimerCallback),
+    timer(this, TimerCallback, &motorController),
     controllers {batteryController,
                  bleController,
                  dateTimeController,
@@ -376,7 +376,7 @@ void DisplayApp::Refresh() {
         } else {
           LoadNewScreen(Apps::Timer, DisplayApp::FullRefreshDirections::Up);
         }
-        motorController.RunForDuration(35);
+        timer.StartRinging();
         break;
       case Messages::AlarmTriggered:
         if (currentApp == Apps::Alarm) {

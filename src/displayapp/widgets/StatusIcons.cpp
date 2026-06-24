@@ -21,10 +21,12 @@ void StatusIcons::Create() {
   lv_label_set_text_static(bleIcon, Screens::Symbols::bluetooth);
 
   batteryPlug = lv_label_create(container, nullptr);
-  lv_label_set_text_static(batteryPlug, Screens::Symbols::plug);
+  lv_label_set_recolor(batteryPlug, true);
+  lv_label_set_text_static(batteryPlug, "#feff00 C#");
 
   alarmIcon = lv_label_create(container, nullptr);
-  lv_label_set_text_static(alarmIcon, Screens::Symbols::bell);
+  lv_label_set_recolor(alarmIcon, true);
+  lv_label_set_text_static(alarmIcon, "#ffaaff A#");
 
   batteryIcon.Create(container);
 

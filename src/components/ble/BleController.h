@@ -15,6 +15,8 @@ namespace Pinetime {
       bool IsConnected() const;
       void Connect();
       void Disconnect();
+      void SetConnectionLevel(float level);
+      [[nodiscard]] float GetConnectionLevel() const;
 
       bool IsRadioEnabled() const;
       void EnableRadio();
@@ -71,6 +73,7 @@ namespace Pinetime {
       bool isFirmwareUpdating = false;
       uint32_t firmwareUpdateTotalBytes = 0;
       uint32_t firmwareUpdateCurrentBytes = 0;
+      float connectionLevel;
       FirmwareUpdateStates firmwareUpdateState = FirmwareUpdateStates::Idle;
       BleAddress address;
       AddressTypes addressType;

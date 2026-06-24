@@ -38,7 +38,8 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
                                      Controllers::MotionController& motionController,
                                      Controllers::SimpleWeatherService& weatherService,
                                      Controllers::AlarmController& alarmController,
-                                     Controllers::MusicService& musicService)
+                                     Controllers::MusicService& musicService,
+                                     Controllers::Timer& timer)
   : currentDateTime {{}},
     dateTimeController {dateTimeController},
     batteryController {batteryController},
@@ -49,7 +50,8 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
     motionController {motionController},
     weatherService {weatherService},
     alarmController {alarmController},
-    musicService {musicService} {
+    musicService {musicService},
+    timer {timer} {
   batteryValue = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(batteryValue, true);
   lv_obj_align(batteryValue, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 10, -20);
@@ -62,6 +64,11 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
   lv_label_set_recolor(alarmStateLabel, true);
   lv_obj_align(alarmStateLabel, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 60);
   lv_label_set_text_static(alarmStateLabel, "#ffaaff NA#");
+
+  timerLabel = lv_label_create(lv_scr_act(), nullptr);
+  lv_obj_set_style_local_text_color(timerLabel, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00eeff));
+  lv_label_set_text_static(timerLabel, "");
+  lv_obj_align(timerLabel, nullptr, LV_ALIGN_IN_TOP_LEFT, 0, 110);
 
   notificationIcon = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(notificationIcon, true);
@@ -81,6 +88,14 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
   lv_obj_align(time_bg, lv_scr_act(), LV_ALIGN_CENTER, -115, -65);
   lv_obj_set_style_local_bg_color(time_bg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000) );
 
+  timer_bg = lv_obj_create(lv_scr_act(), nullptr);
+	lv_obj_set_width(timer_bg, 350);
+	lv_obj_set_height(timer_bg, 65);
+  lv_obj_align(timer_bg, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, -65);
+  lv_obj_set_style_local_bg_color(timer_bg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x00eeff) );
+  lv_obj_set_style_local_bg_grad_color(timer_bg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x000000));
+  lv_obj_set_style_local_bg_grad_dir(timer_bg, LV_OBJ_PART_MAIN, LV_STATE_DEFAULT, LV_GRAD_DIR_HOR);
+
   label_bottom_music = lv_label_create(lv_scr_act(), nullptr);
   lv_obj_align(label_bottom_music, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, 100);
   lv_label_set_text_static(label_bottom_music, MINIMAL_BOTTOM_LINE);
@@ -91,6 +106,10 @@ WatchFaceMinimal::WatchFaceMinimal(Controllers::DateTime& dateTimeController,
   lv_obj_set_style_local_text_color(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, lv_color_hex(0x11cc55));
   lv_obj_set_style_local_text_font(label_time, LV_LABEL_PART_MAIN, LV_STATE_DEFAULT, &jetbrains_mono_76);
   lv_obj_align(label_time, lv_scr_act(), LV_ALIGN_CENTER, -115, -65);
+
+  connLevelValue = lv_label_create(lv_scr_act(), nullptr);
+  lv_label_set_recolor(connLevelValue, true);
+  lv_obj_align(connLevelValue, lv_scr_act(), LV_ALIGN_IN_RIGHT_MID, 0, 40);
 
   heartbeatValue = lv_label_create(lv_scr_act(), nullptr);
   lv_label_set_recolor(heartbeatValue, true);
@@ -131,6 +150,7 @@ void WatchFaceMinimal::Refresh() {
   }
 
   bleState = bleController.IsConnected();
+  connectionLevel = bleController.GetConnectionLevel();
   bleRadioEnabled = bleController.IsRadioEnabled();
 
   alarmState = alarmController.IsEnabled();
@@ -139,6 +159,11 @@ void WatchFaceMinimal::Refresh() {
   uint16_t hoursToAlarm = 0;
   if (alarmState.Get()) {
     hoursToAlarm = alarmController.SecondsToAlarm()/60/60;
+  }
+
+  if (connectionLevel.IsUpdated()) {
+    // lv_label_set_text_fmt(connLevelValue, "#0000ff %2d#", connectionLevel.Get() * 100);
+    lv_label_set_text_fmt(connLevelValue, "");
   }
 
   notificationState = notificationManager.AreNewNotificationsAvailable();
@@ -210,6 +235,8 @@ void WatchFaceMinimal::Refresh() {
     }
   }
 
+
+
   currentDateTime = std::chrono::time_point_cast<std::chrono::seconds>(dateTimeController.CurrentDateTime());
   bool isDateTimeUpdated = currentDateTime.IsUpdated();
   if (isDateTimeUpdated) {
@@ -267,9 +294,32 @@ void WatchFaceMinimal::Refresh() {
   }
 
   playingState = musicService.isPlaying();
-  if (playingState.Get()) {
-    lv_label_set_text_fmt(label_bottom_music, "#00fffb %s#", musicService.getTrack().c_str());
-  } else {
-    lv_label_set_text_static(label_bottom_music, MINIMAL_BOTTOM_LINE);
+  playingTrack = musicService.getTrack();
+  if (playingState.IsUpdated() || playingTrack.IsUpdated()) {
+    if (playingState.Get()) {
+      lv_label_set_text_fmt(label_bottom_music, "#00fffb %s#", musicService.getTrack().c_str());
+    } else {
+      lv_label_set_text_static(label_bottom_music, MINIMAL_BOTTOM_LINE);
+    }
+  }
+
+
+  timerRunning = timer.IsRunning();
+  if (timerRunning.IsUpdated() || timerRunning.Get()) {
+    if (timerRunning.Get()) {
+      auto ms = timer.GetTimeRemaining();
+      auto secs = duration_cast<std::chrono::seconds>(ms);
+      ms -= duration_cast<std::chrono::milliseconds>(secs);
+      auto mins = duration_cast<std::chrono::minutes>(secs);
+      secs -= duration_cast<std::chrono::seconds>(mins);
+      auto hour = duration_cast<std::chrono::hours>(mins);
+      mins -= duration_cast<std::chrono::minutes>(hour);
+      lv_label_set_text_fmt(timerLabel, "T%02d:%02d", static_cast<int>(mins.count()), static_cast<int>(secs.count()));
+      lv_obj_align(timer_bg, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, -100 - 250 * timer.GetFractionRemaining(), -65);
+    }
+    else {
+      lv_label_set_text_static(timerLabel, "");
+      lv_obj_align(timer_bg, lv_scr_act(), LV_ALIGN_IN_LEFT_MID, 0, -705);
+    }
   }
 }

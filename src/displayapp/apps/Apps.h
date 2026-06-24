@@ -26,6 +26,7 @@ namespace Pinetime {
       StopWatch,
       Metronome,
       Motion,
+      Calculator,
       Steps,
       Dice,
       Weather,
@@ -54,6 +55,7 @@ namespace Pinetime {
       Infineat,
       CasioStyleG7710,
       Minimal,
+      PrideFlag,
     };
 
     template <Apps>

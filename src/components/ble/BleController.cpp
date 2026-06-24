@@ -14,6 +14,14 @@ void Ble::Disconnect() {
   isConnected = false;
 }
 
+void Ble::SetConnectionLevel(float level) {
+  connectionLevel = level;
+}
+
+float Ble::GetConnectionLevel() const {
+  return connectionLevel;
+}
+
 bool Ble::IsRadioEnabled() const {
   return isRadioEnabled;
 }

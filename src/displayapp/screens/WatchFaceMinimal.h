@@ -34,13 +34,15 @@ namespace Pinetime {
                           Controllers::MotionController& motionController,
                           Controllers::SimpleWeatherService& weatherService,
                           Controllers::AlarmController& alarmController,
-                          Controllers::MusicService& musicService);
+                          Controllers::MusicService& musicService,
+                          Controllers::Timer& timer);
         ~WatchFaceMinimal() override;
 
         void Refresh() override;
 
       private:
         Utility::DirtyValue<int> batteryPercentRemaining {};
+        Utility::DirtyValue<float> connectionLevel {};
         Utility::DirtyValue<bool> powerPresent {};
         Utility::DirtyValue<bool> bleState {};
         Utility::DirtyValue<bool> bleRadioEnabled {};
@@ -48,14 +50,18 @@ namespace Pinetime {
         Utility::DirtyValue<uint32_t> stepCount {};
         Utility::DirtyValue<uint8_t> heartbeat {};
         Utility::DirtyValue<bool> heartbeatRunning {};
+        Utility::DirtyValue<bool> timerRunning {};
         Utility::DirtyValue<bool> notificationState {};
         Utility::DirtyValue<bool> alarmState {};
         Utility::DirtyValue<bool> playingState {};
+        Utility::DirtyValue<std::string> playingTrack {};
         Utility::DirtyValue<std::chrono::time_point<std::chrono::system_clock, std::chrono::days>> currentDate;
         Utility::DirtyValue<std::optional<Controllers::SimpleWeatherService::CurrentWeather>> currentWeather {};
 
         lv_obj_t* label_time;
+        lv_obj_t* timerLabel;
         lv_obj_t* time_bg;
+        lv_obj_t* timer_bg;
         lv_obj_t* label_date;
         lv_obj_t* seconds;
         lv_obj_t* weather;
@@ -64,6 +70,7 @@ namespace Pinetime {
         lv_obj_t* label_bottom_music;
         lv_obj_t* batteryValue;
         lv_obj_t* heartbeatValue;
+        lv_obj_t* connLevelValue;
         lv_obj_t* stepValue;
         lv_obj_t* notificationIcon;
         lv_obj_t* alarmStateLabel;
@@ -78,6 +85,7 @@ namespace Pinetime {
         Controllers::SimpleWeatherService& weatherService;
         Controllers::AlarmController& alarmController;
         Controllers::MusicService& musicService;
+        Controllers::Timer& timer;
 
         lv_task_t* taskRefresh;
       };
@@ -98,7 +106,8 @@ namespace Pinetime {
                                               controllers.motionController,
                                               *controllers.weatherController,
                                               controllers.alarmController,
-                                              *controllers.musicService);
+                                              *controllers.musicService,
+                                              controllers.timer);
       };
 
       static bool IsAvailable(Pinetime::Controllers::FS& /*filesystem*/) {

@@ -182,6 +182,8 @@ void NimbleController::StartAdvertising() {
 }
 
 int NimbleController::OnGAPEvent(ble_gap_event* event) {
+  int rc;
+  struct ble_gap_conn_desc desc;
   switch (event->type) {
     case BLE_GAP_EVENT_ADV_COMPLETE:
       NRF_LOG_INFO("Advertising event : BLE_GAP_EVENT_ADV_COMPLETE");
@@ -235,6 +237,9 @@ int NimbleController::OnGAPEvent(ble_gap_event* event) {
       /* The central has updated the connection parameters. */
       NRF_LOG_INFO("Update event : BLE_GAP_EVENT_CONN_UPDATE");
       NRF_LOG_INFO("update status=%0X ", event->conn_update.status);
+      rc = ble_gap_conn_find(event->connect.conn_handle, &desc);
+      ASSERT(rc == 0);
+      bleController.SetConnectionLevel(1 - (float) desc.conn_latency / desc.supervision_timeout);
       break;
 
     case BLE_GAP_EVENT_CONN_UPDATE_REQ:
